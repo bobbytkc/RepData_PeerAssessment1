@@ -17,8 +17,8 @@ This assignment makes use of data from a personal activity monitoring device. Th
 
 We address this question by plotting a histogram of the total number of steps that are taken each day.
 
-```{r}
 
+```r
 ##Code required dplyr for dataframe manipulation and ggplot2 for plotting 
 suppressMessages(library(dplyr));
 suppressWarnings(library(ggplot2));
@@ -36,13 +36,24 @@ qplot(totalStepsPerDay$steps,
       xlab = "Total Number of Steps Per Day",
       ylab = "Count")+
         ggtitle("Histogram of total daily steps.")
+```
 
 ```
+## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
+```
+
+![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1-1.png) 
 
 We can see from the histogram that the total number of steps are centred around 10,000 steps or so. The precise mean/median is summarized by the table below, confirming which confirms this:
 
-```{r}
+
+```r
 summary(totalStepsPerDay$steps)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    8841   10760   10770   13290   21190
 ```
 
 
@@ -50,8 +61,8 @@ summary(totalStepsPerDay$steps)
 
 We address this question by making a time series plot of the average daily activity patterns (that is, we plot the activity averaged over all days).
 
-```{r}
 
+```r
 ##calculates the average daily activity
 byInterval<-group_by(noNAData, interval)
 averageDaily<-summarize(byInterval,mean(steps))
@@ -64,25 +75,29 @@ qplot(averageDaily$interval, averageDaily$steps,
       xlab = "Interval",
       ylab = "Average number of steps")+
         ggtitle("Average number of steps taken vs Interval")
+```
 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
+
+```r
 ##finds the interval with highest activity
 maxIndex <- which.max(averageDaily$steps)
 maxInterval <- averageDaily$interval[maxIndex]
-
 ```
 
-The max number of steps (on average) occurs in the interval `r  averageDaily$interval[maxIndex]` (that is, between 8.35 am and 8.40am when many people are heading for work).  From the histogram, average activiy is the lowest before 5am, when most people are sleeping. Average activity also drops sharply after 8pm, when most people have likely finished work.
+The max number of steps (on average) occurs in the interval 835 (that is, between 8.35 am and 8.40am when many people are heading for work).  From the histogram, average activiy is the lowest before 5am, when most people are sleeping. Average activity also drops sharply after 8pm, when most people have likely finished work.
 
 ##Inputing missing values
 
 There are NA values in the raw data. Some days are left out in the histogram plot. To fill in this gap we will them with the mean interval values. The resulting filled data set is not going to affect the averages, and will give a rough approximate of the total counts *if* those days correctly recorded data. 
 
 
-The number of observations with NAs is `r sum(!complete.cases(activityData$steps))` out of 17568 observations. This may be signigicant
+The number of observations with NAs is 2304 out of 17568 observations. This may be signigicant
 
 The code filling the data is below:
 
-```{r}
+
+```r
 ##replaces all NAs for a given interval with the mean value for that interval
 lookupMeanSteps <- function(meanSteps, interval){
         meanSteps[meanSteps$interval==as.numeric(interval),2]
@@ -102,8 +117,8 @@ filledData$steps <- filledSteps
 
 Using this filled data, we recalculate the total number of steps in any given day:
 
-```{r}
 
+```r
 ##recalculates the total number of steps in a day
 byDateFilledData <- group_by(filledData, date)
 totalStepsFilledData <- summarize(byDateFilledData, sum(steps))
@@ -114,9 +129,21 @@ qplot(totalStepsFilledData$steps,
       xlab = "Total Steps",
       ylab = "Count") +
         ggtitle("Histogram of Total Daily Steps (Filled Data)")
+```
 
+```
+## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
+```
+
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
+
+```r
 summary(totalStepsFilledData$steps)
+```
 
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    9819   10770   10770   12810   21190
 ```
 
 As expected filling in the missing values increased the the number of counts at the mean value of the histogram, representing days with missing data. The mean values remain unchanged as can be seen from the above data summary. This is by design since the filled in data are the mean values for each interval. The median count rate did get shifted slightly using the filled data, but not signigicantly. 
@@ -125,8 +152,8 @@ As expected filling in the missing values increased the the number of counts at 
 ##Are there differences in activity patterns between weekdays and weekends?
 Given that the activity levels are presumable indicated by sleep and work patterns of an average individual, there is likely to be a difference between weekend and weekday activity levels. We address this by plotting seperately the weekday and weekend data:
 
-```{r}
 
+```r
 ##finds out which of the days are weekdays, and which are weekends
 filledData$date <-as.Date(as.character(filledData$date), "%Y-%m-%d")
 isWeekend<-(as.character(weekdays(filledData$date, abbreviate = TRUE))  == "Sun"|
@@ -155,8 +182,9 @@ qplot(interval,
       geom = "line") +
         ggtitle("Average number of steps taken vs Interval, 
                 Weekend and Weekday Comparison")
-
 ```
+
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png) 
 
 
 From both plots, we can see that activity rises later on the Weekend later as compared to the Weekday data. It also drops later on in the day. The peak activity on weekends is also lower. This suggests that during the weekdays, the subjects sleep in later and also goes to bed later in the day. The peak activity is also lower, suggesting many people rest during the weekends. This affirms the assertion that activity levels are highly affected by the work and sleep schedules of the subjects. 
